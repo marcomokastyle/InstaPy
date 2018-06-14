@@ -47,8 +47,7 @@ from .unfollow_util import follow_given_user
 from .unfollow_util import load_follow_restriction
 from .unfollow_util import dump_follow_restriction
 from .unfollow_util import set_automated_followed_pool
-from .feed_util import get_like_on_feed
-from .commenters_util import extract_post_info     
+
 from .commenters_util import extract_information
 from .commenters_util import users_liked
 from .commenters_util import get_photo_urls_from_profile
@@ -81,6 +80,11 @@ class InstaPy:
         if nogui:
             self.display = Display(visible=0, size=(800, 600))
             self.display.start()
+
+        self.skip_private = False
+        self.skip_no_profile_pic = False
+        self.min_media = 0
+        self.max_media = 0
 
         self.browser = None
         self.headless_browser = headless_browser
@@ -174,6 +178,14 @@ class InstaPy:
         if selenium_local_session:
             self.set_selenium_local_session()
 
+    def set_skip_users(self, skip_private=False, skip_no_profile_pic=False, min_media=0, max_media=0):
+        if self.aborting:
+            return self
+        self.skip_private = skip_private
+        self.skip_no_profile_pic = skip_no_profile_pic
+        self.min_media = min_media
+        self.max_media = max_media
+        return self
 
     def get_instapy_logger(self, show_logs):
         """
@@ -655,12 +667,16 @@ class InstaPy:
                                            self.username,
                                            self.ignore_users,
                                            self.blacklist,
+                                           self.skip_private,
+                                           self.skip_no_profile_pic,
                                            self.potency_ratio,
                                            self.delimit_by_numbers,
                                            self.max_followers,
                                            self.max_following,
                                            self.min_followers,
                                            self.min_following,
+                                           self.min_media,
+                                           self.max_media,
                                            self.logger)
             if validation != True or acc_to_follow==self.username:
                 self.logger.info(details)
@@ -819,12 +835,16 @@ class InstaPy:
                                                        self.username,
                                                        self.ignore_users,
                                                        self.blacklist,
+                                                       self.skip_private,
+                                                       self.skip_no_profile_pic,
                                                        self.potency_ratio,
                                                        self.delimit_by_numbers,
                                                        self.max_followers,
                                                        self.max_following,
                                                        self.min_followers,
                                                        self.min_following,
+                                                       self.min_media,
+                                                       self.max_media,
                                                        self.logger)
                         if validation != True:
                             self.logger.info(details)
@@ -992,12 +1012,16 @@ class InstaPy:
                                                        self.username,
                                                        self.ignore_users,
                                                        self.blacklist,
+                                                       self.skip_private,
+                                                       self.skip_no_profile_pic,
                                                        self.potency_ratio,
                                                        self.delimit_by_numbers,
                                                        self.max_followers,
                                                        self.max_following,
                                                        self.min_followers,
                                                        self.min_following,
+                                                       self.min_media,
+                                                       self.max_media,
                                                        self.logger)
                         if validation != True:
                             self.logger.info(details)
@@ -1170,12 +1194,16 @@ class InstaPy:
                                                        self.username,
                                                        self.ignore_users,
                                                        self.blacklist,
+                                                       self.skip_private,
+                                                       self.skip_no_profile_pic,
                                                        self.potency_ratio,
                                                        self.delimit_by_numbers,
                                                        self.max_followers,
                                                        self.max_following,
                                                        self.min_followers,
                                                        self.min_following,
+                                                       self.min_media,
+                                                       self.max_media,
                                                        self.logger)
                         if validation != True:
                             self.logger.info(details)
@@ -1333,12 +1361,16 @@ class InstaPy:
                                            self.username,
                                            self.ignore_users,
                                            self.blacklist,
+                                           self.skip_private,
+                                           self.skip_no_profile_pic,
                                            self.potency_ratio,
                                            self.delimit_by_numbers,
                                            self.max_followers,
                                            self.max_following,
                                            self.min_followers,
                                            self.min_following,
+                                           self.min_media,
+                                           self.max_media,
                                            self.logger)
             if validation != True:
                 self.logger.info(details)
@@ -1519,12 +1551,16 @@ class InstaPy:
                                            self.username,
                                            self.ignore_users,
                                            self.blacklist,
+                                           self.skip_private,
+                                           self.skip_no_profile_pic,
                                            self.potency_ratio,
                                            self.delimit_by_numbers,
                                            self.max_followers,
                                            self.max_following,
                                            self.min_followers,
                                            self.min_following,
+                                           self.min_media,
+                                           self.max_media,
                                            self.logger)
             if validation != True:
                 self.logger.info(details)
@@ -1761,12 +1797,16 @@ class InstaPy:
                                self.username,
                                self.ignore_users,
                                self.blacklist,
+                               self.skip_private,
+                               self.skip_no_profile_pic,
                                self.potency_ratio,
                                self.delimit_by_numbers,
                                self.max_followers,
                                self.max_following,
                                self.min_followers,
                                self.min_following,
+                               self.min_media,
+                               self.max_media,
                                self.logger)
                     if validation != True:
                         self.logger.info(details)
@@ -1851,12 +1891,16 @@ class InstaPy:
                                self.username,
                                self.ignore_users,
                                self.blacklist,
+                               self.skip_private,
+                               self.skip_no_profile_pic,
                                self.potency_ratio,
                                self.delimit_by_numbers,
                                self.max_followers,
                                self.max_following,
                                self.min_followers,
                                self.min_following,
+                               self.min_media,
+                               self.max_media,
                                self.logger)
                     if validation != True:
                         self.logger.info(details)
@@ -1944,12 +1988,16 @@ class InstaPy:
                                self.username,
                                self.ignore_users,
                                self.blacklist,
+                               self.skip_private,
+                               self.skip_no_profile_pic,
                                self.potency_ratio,
                                self.delimit_by_numbers,
                                self.max_followers,
                                self.max_following,
                                self.min_followers,
                                self.min_following,
+                               self.min_media,
+                               self.max_media,
                                self.logger)
                     if validation != True:
                         self.logger.info(details)
@@ -2041,12 +2089,16 @@ class InstaPy:
                                self.username,
                                self.ignore_users,
                                self.blacklist,
+                               self.skip_private,
+                               self.skip_no_profile_pic,
                                self.potency_ratio,
                                self.delimit_by_numbers,
                                self.max_followers,
                                self.max_following,
                                self.min_followers,
                                self.min_following,
+                               self.min_media,
+                               self.max_media,
                                self.logger)
                     if validation != True:
                         self.logger.info(details)
@@ -2216,12 +2268,16 @@ class InstaPy:
                                                                self.username,
                                                                self.ignore_users,
                                                                self.blacklist,
+                                                               self.skip_private,
+                                                               self.skip_no_profile_pic,
                                                                self.potency_ratio,
                                                                self.delimit_by_numbers,
                                                                self.max_followers,
                                                                self.max_following,
                                                                self.min_followers,
                                                                self.min_following,
+                                                               self.min_media,
+                                                               self.max_media,
                                                                self.logger)
                                 if validation != True:
                                     self.logger.info(details)
@@ -2479,12 +2535,16 @@ class InstaPy:
                                                        self.username,
                                                        self.ignore_users,
                                                        self.blacklist,
+                                                       self.skip_private,
+                                                       self.skip_no_profile_pic,
                                                        self.potency_ratio,
                                                        self.delimit_by_numbers,
                                                        self.max_followers,
                                                        self.max_following,
                                                        self.min_followers,
                                                        self.min_following,
+                                                       self.min_media,
+                                                       self.max_media,
                                                        self.logger)
                         if validation != True:
                             self.logger.info(details)

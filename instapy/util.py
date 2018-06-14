@@ -14,18 +14,74 @@ from .settings import Settings
 from .time_util import sleep
 from .time_util import sleep_actual
 
+def is_private_user(browser, username):
+    link = 'https://www.instagram.com/{}/'.format(username)
+    web_adress_navigator(browser, link)
+    try:
+        isPrivate = browser.execute_script(
+            "return window._sharedData.entry_data."
+            "ProfilePage[0].graphql.user.is_private")
+    except WebDriverException:   #handle the possible `entry_data` error
+        try:
+            browser.execute_script("location.reload()")
+            isPrivate = browser.execute_script(
+                "return window._sharedData.entry_data."
+                "ProfilePage[0].graphql.user.is_private")
+        except WebDriverException:
+            isPrivate = None
+    return isPrivate
+
+def media_count(browser, username):
+    link = 'https://www.instagram.com/{}/'.format(username)
+    web_adress_navigator(browser, link)
+    try:
+        media_c = browser.execute_script(
+            "return window._sharedData.entry_data."
+            "ProfilePage[0].graphql.user.edge_owner_to_timeline_media.count")
+    except WebDriverException:   #handle the possible `entry_data` error
+        try:
+            browser.execute_script("location.reload()")
+            media_c = browser.execute_script(
+                "return window._sharedData.entry_data."
+                "ProfilePage[0].graphql.user.edge_owner_to_timeline_media.count")
+        except WebDriverException:
+            media_c = -1
+    return media_c
+
+def have_profile_pic(browser, username, logger):
+    link = 'https://www.instagram.com/{}/'.format(username)
+    default_image = "11906329_960233084022564_1448528159_a.jpg"
+    web_adress_navigator(browser, link)
+    try:
+        url = browser.execute_script(
+            "return window._sharedData.entry_data."
+            "ProfilePage[0].graphql.user.profile_pic_url")
+    except WebDriverException:   #handle the possible `entry_data` error
+        try:
+            browser.execute_script("location.reload()")
+            url = browser.execute_script(
+                "return window._sharedData.entry_data."
+                "ProfilePage[0].graphql.user.profile_pic_url")
+        except WebDriverException:
+            url = None
+    logger.info("Profile pic: {}".format(url))
+    return default_image not in url
 
 def validate_username(browser,
                       username_or_link,
                       own_username,
                       ignore_users,
                       blacklist,
+                      skip_private,
+                      skip_no_profile_pic,
                       potency_ratio,
                       delimit_by_numbers,
                       max_followers,
                       max_following,
                       min_followers,
                       min_following,
+                      min_media,
+                      max_media,
                       logger):
     """Check if we can interact with the user"""
 
@@ -64,6 +120,25 @@ def validate_username(browser,
     if username in blacklist:
         return False, \
                 "---> {} is in blacklist  ~skipping user\n".format(username)
+
+    is_private = is_private_user(browser, username)
+
+    if skip_private:
+        if is_private:
+            return False, \
+                    "---> {} is private ~skipping user\n".format(username)
+
+    if min_media != 0 and max_media != 0:
+        media_c = media_count(browser, username)
+        if min_media < media_c > max_media:
+            return False, \
+                    "---> {} have {} posts, min_media is {} max_media is {} ~skipping user\n".format(username,media_c,min_media,max_media)
+
+    if skip_no_profile_pic:
+        user_have_profile_pic = have_profile_pic(browser,username,logger)
+        if not user_have_profile_pic:
+            return False, \
+                    "---> {} don't have a profile pic ~skipping user\n".format(username)
     
     """Checks the potential of target user by relationship status in order to delimit actions within the desired boundary"""
     if potency_ratio or delimit_by_numbers and (max_followers or max_following or min_followers or min_following):
