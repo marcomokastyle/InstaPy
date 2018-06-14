@@ -45,7 +45,7 @@ def media_count(browser, username):
                 "return window._sharedData.entry_data."
                 "ProfilePage[0].graphql.user.edge_owner_to_timeline_media.count")
         except WebDriverException:
-            media_c = -1
+            media_c = None
     return media_c
 
 def have_profile_pic(browser, username, logger):
@@ -128,9 +128,10 @@ def validate_username(browser,
             return False, \
                     "---> {} is private ~skipping user\n".format(username)
 
+    media_c = media_count(browser, username)
+
     if min_media != 0 and max_media != 0:
-        media_c = media_count(browser, username)
-        if min_media < media_c > max_media:
+        if min_media < media_c > max_media and media_c is not None:
             return False, \
                     "---> {} have {} posts, min_media is {} max_media is {} ~skipping user\n".format(username,media_c,min_media,max_media)
 
@@ -158,7 +159,8 @@ def validate_username(browser,
                        if not reverse_relationship
                         else float(following_count)/float(followers_count))
 
-        logger.info('User: {} >> followers: {}  |  following: {}  |  relationship ratio: {}'.format(username,
+        logger.info('User: {} >> media: {}  |  followers: {}  |  following: {}  |  relationship ratio: {}'.format(username,
+        media_c if media_c else 'unknown',
         followers_count if followers_count else 'unknown',
         following_count if following_count else 'unknown',
         float("{0:.2f}".format(relationship_ratio)) if relationship_ratio else 'unknown'))
