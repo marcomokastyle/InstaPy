@@ -387,7 +387,7 @@ class InstaPy:
         if self.aborting:
             return self
 
-        if (media not in [None, 'Photo', 'Video']):
+        if media not in [None, 'Photo', 'Video']:
             self.logger.warning('Unkown media type! Treating as "any".')
             media = None
 
